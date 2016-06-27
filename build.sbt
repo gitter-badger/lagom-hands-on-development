@@ -6,7 +6,11 @@ scalaVersion in ThisBuild := "2.11.7"
 lazy val friendApi = project("friend-api")
   .settings(
     version := "1.0-SNAPSHOT",
-    libraryDependencies += lagomJavadslApi
+    libraryDependencies ++= Seq(
+      lagomJavadslApi,
+      lagomJavadslImmutables
+    )
+
   )
 
 lazy val friendImpl = project("friend-impl")
@@ -15,6 +19,7 @@ lazy val friendImpl = project("friend-impl")
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
       lagomJavadslPersistence,
+      lagomJavadslImmutables,
       lagomJavadslTestKit
     )
   )
@@ -26,7 +31,8 @@ lazy val chirpApi = project("chirp-api")
     version := "1.0-SNAPSHOT",
     libraryDependencies ++= Seq(
       lagomJavadslApi,
-      lagomJavadslJackson
+      lagomJavadslJackson,
+      lagomJavadslImmutables
     )
   )
 
@@ -37,6 +43,7 @@ lazy val chirpImpl = project("chirp-impl")
     libraryDependencies ++= Seq(
       lagomJavadslPersistence,
       lagomJavadslPubSub,
+      lagomJavadslImmutables,
       lagomJavadslTestKit
     )
   )
@@ -46,7 +53,10 @@ lazy val chirpImpl = project("chirp-impl")
 lazy val activityStreamApi = project("activity-stream-api")
   .settings(
     version := "1.0-SNAPSHOT",
-    libraryDependencies += lagomJavadslApi
+    libraryDependencies ++= Seq(
+      lagomJavadslApi,
+      lagomJavadslImmutables
+    )
   )
   .dependsOn(chirpApi)
 
@@ -54,7 +64,10 @@ lazy val activityStreamImpl = project("activity-stream-impl")
   .enablePlugins(LagomJava)
   .settings(
     version := "1.0-SNAPSHOT",
-    libraryDependencies += lagomJavadslTestKit
+    libraryDependencies ++= Seq(
+      lagomJavadslImmutables,
+      lagomJavadslTestKit
+    )
   )
   .dependsOn(activityStreamApi, chirpApi, friendApi)
 
