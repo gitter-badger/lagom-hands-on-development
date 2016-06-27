@@ -30,10 +30,7 @@ import akka.NotUsed;
 import akka.stream.javadsl.Source;
 import play.Logger;
 import play.Logger.ALogger;
-import sample.chirper.chirp.api.Chirp;
-import sample.chirper.chirp.api.ChirpService;
-import sample.chirper.chirp.api.HistoricalChirpsRequest;
-import sample.chirper.chirp.api.LiveChirpsRequest;
+import sample.chirper.chirp.api.*;
 
 public class ChirpServiceImpl implements ChirpService {
 
@@ -66,14 +63,14 @@ public class ChirpServiceImpl implements ChirpService {
   @Override
   public ServiceCall<Chirp, NotUsed> addChirp(String userId) {
     return chirp -> {
-      if (!userId.equals(chirp.userId))
+      if (!userId.equals(chirp.getUserId()))
         throw new IllegalArgumentException("UserId " + userId + " did not match userId in " + chirp);
       PubSubRef<Chirp> topic = topics.refFor(TopicId.of(Chirp.class, topicQualifier(userId)));
       topic.publish(chirp);
       CompletionStage<NotUsed> result =
         db.executeWrite("INSERT INTO chirp (userId, uuid, timestamp, message) VALUES (?, ?, ?, ?)",
-          chirp.userId, chirp.uuid, chirp.timestamp.toEpochMilli(),
-          chirp.message).thenApply(done -> NotUsed.getInstance());
+          chirp.getUserId(), chirp.getUuid(), chirp.getTimestamp().toEpochMilli(),
+          chirp.getMessage()).thenApply(done -> NotUsed.getInstance());
       return result;
     };
   }
@@ -93,7 +90,7 @@ public class ChirpServiceImpl implements ChirpService {
         }
         HashSet<String> users = new HashSet<>(req.userIds);
         Source<Chirp, ?> publishedChirps = Source.from(sources).flatMapMerge(sources.size(), s -> s)
-          .filter(c -> users.contains(c.userId));
+          .filter(c -> users.contains(c.getUserId()));
 
         // We currently ignore the fact that it is possible to get duplicate chirps
         // from the recent and the topic. That can be solved with a de-duplication stage.
@@ -122,8 +119,8 @@ public class ChirpServiceImpl implements ChirpService {
   }
 
   private Chirp mapChirp(Row row) {
-    return new Chirp(row.getString("userId"), row.getString("message"), 
-        Optional.of(Instant.ofEpochMilli(row.getLong("timestamp"))), Optional.of(row.getString("uuid")));
+    return AbstractChirp.of(row.getString("userId"), row.getString("message"),
+        Instant.ofEpochMilli(row.getLong("timestamp")), row.getString("uuid"));
   }
 
   private CompletionStage<PSequence<Chirp>> recentChirps(PSequence<String> userIds) {
@@ -151,7 +148,7 @@ public class ChirpServiceImpl implements ChirpService {
     CompletionStage<PSequence<Chirp>> sortedLimited = combined.thenApply(all -> {
       List<Chirp> allSorted = new ArrayList<>(all);
       // reverse order
-      Collections.sort(allSorted, (a, b) -> b.timestamp.compareTo(a.timestamp));
+      Collections.sort(allSorted, (a, b) -> b.getTimestamp().compareTo(a.getTimestamp()));
       List<Chirp> limited = allSorted.stream().limit(limit).collect(Collectors.toList());
       List<Chirp> reversed = new ArrayList<>(limited);
       Collections.reverse(reversed);

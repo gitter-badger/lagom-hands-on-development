@@ -18,6 +18,7 @@ import javax.inject.Inject;
 import play.Logger;
 import play.Logger.ALogger;
 import sample.chirper.activity.api.ActivityStreamService;
+import sample.chirper.chirp.api.AbstractChirp;
 import sample.chirper.chirp.api.Chirp;
 import sample.chirper.chirp.api.ChirpService;
 import sample.chirper.friend.api.FriendId;
@@ -103,11 +104,11 @@ public class LoadTestServiceImpl implements LoadTestService {
     Source<Chirp, ?> chirps = chirpNumbers.map(n -> {
       String userId = userIdPrefix + (n % params.users);
       String message = "Hello " + n + " from " + userId;
-      return new Chirp(userId, message);
+      return Chirp.of(userId, message);
     });
 
     Source<String, ?> postedChirps = chirps.mapAsyncUnordered(params.parallelism, chirp -> {
-      return chirpService.addChirp(chirp.userId).invoke(chirp);
+      return chirpService.addChirp(chirp.getUserId()).invoke(chirp);
     }).via(summary("posted chirp"));
 
 

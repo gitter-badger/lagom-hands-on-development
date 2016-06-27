@@ -39,8 +39,8 @@ public class ActivityStreamServiceTest {
           .toCompletableFuture().get(3, SECONDS);
       Probe<Chirp> probe = chirps.runWith(TestSink.probe(server.system()), server.materializer());
       probe.request(10);
-      assertEquals("msg1", probe.expectNext().message);
-      assertEquals("msg2", probe.expectNext().message);
+      assertEquals("msg1", probe.expectNext().getMessage());
+      assertEquals("msg2", probe.expectNext().getMessage());
       probe.cancel();
     });
   }
@@ -53,7 +53,7 @@ public class ActivityStreamServiceTest {
           .toCompletableFuture().get(3, SECONDS);
       Probe<Chirp> probe = chirps.runWith(TestSink.probe(server.system()), server.materializer());
       probe.request(10);
-      assertEquals("msg1", probe.expectNext().message);
+      assertEquals("msg1", probe.expectNext().getMessage());
       probe.expectComplete();
     });
   }
@@ -112,8 +112,8 @@ public class ActivityStreamServiceTest {
     public ServiceCall<LiveChirpsRequest, Source<Chirp, ?>> getLiveChirps() {
       return req -> {
         if (req.userIds.contains("usr2")) {
-          Chirp c1 = new Chirp("usr2", "msg1");
-          Chirp c2 = new Chirp("usr2", "msg2");
+          Chirp c1 = Chirp.of("usr2", "msg1");
+          Chirp c2 = Chirp.of("usr2", "msg2");
           return completedFuture(Source.from(Arrays.asList(c1, c2)));
         } else
           return completedFuture(Source.empty());
@@ -124,7 +124,7 @@ public class ActivityStreamServiceTest {
     public ServiceCall<HistoricalChirpsRequest, Source<Chirp, ?>> getHistoricalChirps() {
       return req -> {
         if (req.userIds.contains("usr2")) {
-          Chirp c1 = new Chirp("usr2", "msg1");
+          Chirp c1 = Chirp.of("usr2", "msg1");
           return completedFuture(Source.single(c1));
         } else
           return completedFuture(Source.empty());
