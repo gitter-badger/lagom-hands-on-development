@@ -30,8 +30,8 @@ public class FriendServiceTest {
       User usr3 = new User("usr3", "User 3");
       friendService.createUser().invoke(usr3).toCompletableFuture().get(3, SECONDS);
 
-      friendService.addFriend("usr1").invoke(new FriendId(usr2.userId)).toCompletableFuture().get(3, SECONDS);
-      friendService.addFriend("usr1").invoke(new FriendId(usr3.userId)).toCompletableFuture().get(3, SECONDS);
+      friendService.addFriend("usr1").invoke(FriendId.of(usr2.userId)).toCompletableFuture().get(3, SECONDS);
+      friendService.addFriend("usr1").invoke(FriendId.of(usr3.userId)).toCompletableFuture().get(3, SECONDS);
 
       User fetchedUsr1 = friendService.getUser("usr1").invoke().toCompletableFuture().get(3,
           SECONDS);

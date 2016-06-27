@@ -65,7 +65,7 @@ public class FriendServiceImpl implements FriendService {
   @Override
   public ServiceCall<FriendId, NotUsed> addFriend(String userId) {
     return request -> {
-      return friendEntityRef(userId).ask(new AddFriend(request.friendId))
+      return friendEntityRef(userId).ask(new AddFriend(request.getFriendId()))
           .thenApply(ack -> NotUsed.getInstance());
     };
   }
