@@ -120,7 +120,7 @@ public class ChirpServiceImpl implements ChirpService {
 
   private Chirp mapChirp(Row row) {
     return AbstractChirp.of(row.getString("userId"), row.getString("message"),
-        Instant.ofEpochMilli(row.getLong("timestamp")), row.getString("uuid"));
+        Optional.of(Instant.ofEpochMilli(row.getLong("timestamp"))), Optional.of(row.getString("uuid")));
   }
 
   private CompletionStage<PSequence<Chirp>> recentChirps(PSequence<String> userIds) {

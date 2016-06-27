@@ -4,6 +4,7 @@
 package sample.chirper.chirp.api;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -34,18 +35,17 @@ public interface AbstractChirp extends Jsonable {
     return UUID.randomUUID().toString();
   }
 
-  static Chirp of(String userId, String message, @Nullable Instant timestamp, @Nullable String uuid) {
+  static Chirp of(String userId, String message, Optional<Instant> timestamp, Optional<String> uuid) {
 
     Chirp.Builder builder = Chirp.builder()
             .userId(userId)
             .message(message);
 
-    if (timestamp != null)
-      builder.timestamp(timestamp);
-    if (uuid != null)
-      builder.uuid(uuid);
+    timestamp.ifPresent(t -> builder.timestamp(t));
+    uuid.ifPresent(u -> builder.uuid(u));
 
     return builder.build();
   }
+
 
 }
