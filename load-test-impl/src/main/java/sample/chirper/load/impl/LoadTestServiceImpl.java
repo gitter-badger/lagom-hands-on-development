@@ -77,7 +77,7 @@ public class LoadTestServiceImpl implements LoadTestService {
     log.info("Starting load with parameters: " + params + ", users prefixed with: " + userIdPrefix);
     Source<Integer, ?> userNumbers = Source.range(1, params.users);
     Source<User, ?> users = userNumbers
-        .map(n -> new User(userIdPrefix + n, userIdPrefix.toUpperCase() + n));
+        .map(n -> User.of(userIdPrefix + n, userIdPrefix.toUpperCase() + n));
     Source<String, ?> createdUsers = users
         .mapAsync(params.parallelism, user -> friendService.createUser().invoke(user))
         .via(summary("created users"));

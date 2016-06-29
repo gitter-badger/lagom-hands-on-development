@@ -23,21 +23,21 @@ public class FriendServiceTest {
   public void shouldBeAbleToCreateUsersAndConnectFriends() throws Exception {
     withServer(defaultSetup(), server -> {
       FriendService friendService = server.client(FriendService.class);
-      User usr1 = new User("usr1", "User 1");
+      User usr1 = User.of("usr1", "User 1");
       friendService.createUser().invoke(usr1).toCompletableFuture().get(10, SECONDS);
-      User usr2 = new User("usr2", "User 2");
+      User usr2 = User.of("usr2", "User 2");
       friendService.createUser().invoke(usr2).toCompletableFuture().get(3, SECONDS);
-      User usr3 = new User("usr3", "User 3");
+      User usr3 = User.of("usr3", "User 3");
       friendService.createUser().invoke(usr3).toCompletableFuture().get(3, SECONDS);
 
-      friendService.addFriend("usr1").invoke(FriendId.of(usr2.userId)).toCompletableFuture().get(3, SECONDS);
-      friendService.addFriend("usr1").invoke(FriendId.of(usr3.userId)).toCompletableFuture().get(3, SECONDS);
+      friendService.addFriend("usr1").invoke(FriendId.of(usr2.getUserId())).toCompletableFuture().get(3, SECONDS);
+      friendService.addFriend("usr1").invoke(FriendId.of(usr3.getUserId())).toCompletableFuture().get(3, SECONDS);
 
       User fetchedUsr1 = friendService.getUser("usr1").invoke().toCompletableFuture().get(3,
           SECONDS);
-      assertEquals(usr1.userId, fetchedUsr1.userId);
-      assertEquals(usr1.name, fetchedUsr1.name);
-      assertEquals(TreePVector.empty().plus("usr2").plus("usr3"), fetchedUsr1.friends);
+      assertEquals(usr1.getUserId(), fetchedUsr1.getUserId());
+      assertEquals(usr1.getName(), fetchedUsr1.getName());
+      assertEquals(TreePVector.empty().plus("usr2").plus("usr3"), fetchedUsr1.getFriends());
 
       eventually(FiniteDuration.create(10, SECONDS), () -> {
         PSequence<String> followers = friendService.getFollowers("usr2").invoke()

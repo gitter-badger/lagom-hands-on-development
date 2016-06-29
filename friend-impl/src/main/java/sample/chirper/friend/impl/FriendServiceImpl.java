@@ -23,9 +23,6 @@ import akka.NotUsed;
 import sample.chirper.friend.api.FriendId;
 import sample.chirper.friend.api.FriendService;
 import sample.chirper.friend.api.User;
-import sample.chirper.friend.impl.FriendCommand.AddFriend;
-import sample.chirper.friend.impl.FriendCommand.CreateUser;
-import sample.chirper.friend.impl.FriendCommand.GetUser;
 
 public class FriendServiceImpl implements FriendService {
 
@@ -45,9 +42,9 @@ public class FriendServiceImpl implements FriendService {
   @Override
   public ServiceCall<NotUsed, User> getUser(String userId) {
     return request -> {
-      return friendEntityRef(userId).ask(new GetUser()).thenApply(reply -> {
-        if (reply.user.isPresent())
-          return reply.user.get();
+      return friendEntityRef(userId).ask(GetUser.of()).thenApply(reply -> {
+        if (reply.getUser().isPresent())
+          return reply.getUser().get();
         else
           throw new NotFound("user " + userId + " not found");
       });
@@ -57,7 +54,7 @@ public class FriendServiceImpl implements FriendService {
   @Override
   public ServiceCall<User, NotUsed> createUser() {
     return request -> {
-      return friendEntityRef(request.userId).ask(new CreateUser(request))
+      return friendEntityRef(request.getUserId()).ask(CreateUser.of(request))
           .thenApply(ack -> NotUsed.getInstance());
     };
   }
@@ -65,7 +62,7 @@ public class FriendServiceImpl implements FriendService {
   @Override
   public ServiceCall<FriendId, NotUsed> addFriend(String userId) {
     return request -> {
-      return friendEntityRef(userId).ask(new AddFriend(request.getFriendId()))
+      return friendEntityRef(userId).ask(AddFriend.of(request.getFriendId()))
           .thenApply(ack -> NotUsed.getInstance());
     };
   }
