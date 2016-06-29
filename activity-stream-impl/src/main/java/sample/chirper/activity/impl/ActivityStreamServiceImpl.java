@@ -35,7 +35,7 @@ public class ActivityStreamServiceImpl implements ActivityStreamService {
     return req -> {
       return friendService.getUser(userId).invoke().thenCompose(user -> {
         PSequence<String> userIds = user.getFriends().plus(userId);
-        LiveChirpsRequest chirpsReq =  new LiveChirpsRequest(userIds);
+        LiveChirpsRequest chirpsReq =  LiveChirpsRequest.of(userIds);
         // Note that this stream will not include changes to friend associates,
         // e.g. adding a new friend.
         CompletionStage<Source<Chirp, ?>> result = chirpService.getLiveChirps().invoke(chirpsReq);
@@ -51,7 +51,7 @@ public class ActivityStreamServiceImpl implements ActivityStreamService {
         PSequence<String> userIds = user.getFriends().plus(userId);
         // FIXME we should use HistoricalActivityStreamReq request parameter
         Instant fromTime = Instant.now().minus(Duration.ofDays(7));
-        HistoricalChirpsRequest chirpsReq = new HistoricalChirpsRequest(fromTime, userIds);
+        HistoricalChirpsRequest chirpsReq = HistoricalChirpsRequest.of(fromTime, userIds);
         CompletionStage<Source<Chirp, ?>> result = chirpService.getHistoricalChirps().invoke(chirpsReq);
         return result;
       });

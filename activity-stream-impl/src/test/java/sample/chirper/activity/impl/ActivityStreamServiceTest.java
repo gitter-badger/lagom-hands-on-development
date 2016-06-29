@@ -111,7 +111,7 @@ public class ActivityStreamServiceTest {
     @Override
     public ServiceCall<LiveChirpsRequest, Source<Chirp, ?>> getLiveChirps() {
       return req -> {
-        if (req.userIds.contains("usr2")) {
+        if (req.getUserIds().contains("usr2")) {
           Chirp c1 = Chirp.of("usr2", "msg1");
           Chirp c2 = Chirp.of("usr2", "msg2");
           return completedFuture(Source.from(Arrays.asList(c1, c2)));
@@ -123,7 +123,7 @@ public class ActivityStreamServiceTest {
     @Override
     public ServiceCall<HistoricalChirpsRequest, Source<Chirp, ?>> getHistoricalChirps() {
       return req -> {
-        if (req.userIds.contains("usr2")) {
+        if (req.getUserIds().contains("usr2")) {
           Chirp c1 = Chirp.of("usr2", "msg1");
           return completedFuture(Source.single(c1));
         } else

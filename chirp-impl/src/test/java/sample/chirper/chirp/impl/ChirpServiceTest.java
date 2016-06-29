@@ -36,7 +36,7 @@ public class ChirpServiceTest {
   @Test
   public void shouldPublishShirpsToSubscribers() throws Exception {
     ChirpService chirpService = server.client(ChirpService.class);
-    LiveChirpsRequest request = new LiveChirpsRequest(TreePVector.<String>empty().plus("usr1").plus("usr2"));
+    LiveChirpsRequest request = LiveChirpsRequest.of(TreePVector.<String>empty().plus("usr1").plus("usr2"));
     Source<Chirp, ?> chirps1 = chirpService.getLiveChirps().invoke(request).toCompletableFuture().get(3, SECONDS);
     Probe<Chirp> probe1 = chirps1.runWith(TestSink.probe(server.system()), server.materializer());
     probe1.request(10);
@@ -73,7 +73,7 @@ public class ChirpServiceTest {
     Chirp chirp2 = Chirp.of("usr4", "hi 2");
     chirpService.addChirp("usr4").invoke(chirp2).toCompletableFuture().get(3, SECONDS);
 
-    LiveChirpsRequest request = new LiveChirpsRequest(TreePVector.<String>empty().plus("usr3").plus("usr4"));
+    LiveChirpsRequest request = LiveChirpsRequest.of(TreePVector.<String>empty().plus("usr3").plus("usr4"));
     Source<Chirp, ?> chirps = chirpService.getLiveChirps().invoke(request).toCompletableFuture().get(3, SECONDS);
     Probe<Chirp> probe = chirps.runWith(TestSink.probe(server.system()), server.materializer());
     probe.request(10);
@@ -96,7 +96,7 @@ public class ChirpServiceTest {
     Chirp chirp2 = Chirp.of("usr6", "msg 2");
     chirpService.addChirp("usr6").invoke(chirp2).toCompletableFuture().get(3, SECONDS);
 
-    HistoricalChirpsRequest request = new HistoricalChirpsRequest(Instant.now().minusSeconds(20),
+    HistoricalChirpsRequest request = HistoricalChirpsRequest.of(Instant.now().minusSeconds(20),
         TreePVector.<String>empty().plus("usr5").plus("usr6"));
     Source<Chirp, ?> chirps = chirpService.getHistoricalChirps().invoke(request).toCompletableFuture().get(3, SECONDS);
     Probe<Chirp> probe = chirps.runWith(TestSink.probe(server.system()), server.materializer());

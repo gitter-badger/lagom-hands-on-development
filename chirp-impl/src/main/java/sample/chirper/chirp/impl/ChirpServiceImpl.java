@@ -82,13 +82,13 @@ public class ChirpServiceImpl implements ChirpService {
   @Override
   public ServiceCall<LiveChirpsRequest, Source<Chirp, ?>> getLiveChirps() {
     return req -> {
-      return recentChirps(req.userIds).thenApply(recentChirps -> {
+      return recentChirps(req.getUserIds()).thenApply(recentChirps -> {
         List<Source<Chirp, ?>> sources = new ArrayList<>();
-        for (String userId : req.userIds) {
+        for (String userId : req.getUserIds()) {
           PubSubRef<Chirp> topic = topics.refFor(TopicId.of(Chirp.class, topicQualifier(userId)));
           sources.add(topic.subscriber());
         }
-        HashSet<String> users = new HashSet<>(req.userIds);
+        HashSet<String> users = new HashSet<>(req.getUserIds());
         Source<Chirp, ?> publishedChirps = Source.from(sources).flatMapMerge(sources.size(), s -> s)
           .filter(c -> users.contains(c.getUserId()));
 
@@ -103,10 +103,10 @@ public class ChirpServiceImpl implements ChirpService {
   public ServiceCall<HistoricalChirpsRequest, Source<Chirp, ?>> getHistoricalChirps() {
     return req -> {
       List<Source<Chirp, ?>> sources = new ArrayList<>();
-      for (String userId : req.userIds) {
+      for (String userId : req.getUserIds()) {
           Source<Chirp, NotUsed> select = db
             .select("SELECT * FROM chirp WHERE userId = ? AND timestamp >= ? ORDER BY timestamp ASC", userId,
-                req.fromTime.toEpochMilli())
+                req.getFromTime().toEpochMilli())
             .map(this::mapChirp);
         sources.add(select);
       }
