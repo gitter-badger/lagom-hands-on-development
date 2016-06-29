@@ -5,9 +5,12 @@ package sample.chirper.friend.impl;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Optional;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.pcollections.PCollectionsModule;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -20,13 +23,8 @@ import com.lightbend.lagom.javadsl.testkit.PersistentEntityTestDriver.Outcome;
 import akka.Done;
 import akka.actor.ActorSystem;
 import akka.testkit.JavaTestKit;
+import sample.chirper.friend.api.AbstractUser;
 import sample.chirper.friend.api.User;
-import sample.chirper.friend.impl.FriendCommand.AddFriend;
-import sample.chirper.friend.impl.FriendCommand.CreateUser;
-import sample.chirper.friend.impl.FriendCommand.GetUser;
-import sample.chirper.friend.impl.FriendCommand.GetUserReply;
-import sample.chirper.friend.impl.FriendEvent.FriendAdded;
-import sample.chirper.friend.impl.FriendEvent.UserCreated;
 
 
 public class FriendEntityTest {
@@ -50,10 +48,10 @@ public class FriendEntityTest {
         system, new FriendEntity(), "user-1");
 
     Outcome<FriendEvent, FriendState> outcome = driver.run(
-        new CreateUser(new User("alice", "Alice")));
+         CreateUser.of(User.of("alice", "Alice")));
     assertEquals(Done.getInstance(), outcome.getReplies().get(0));
-    assertEquals("alice", ((UserCreated) outcome.events().get(0)).userId);
-    assertEquals("Alice", ((UserCreated) outcome.events().get(0)).name);
+    assertEquals("alice", ((UserCreated) outcome.events().get(0)).getUserId());
+    assertEquals("Alice", ((UserCreated) outcome.events().get(0)).getName());
     assertEquals(Collections.emptyList(), driver.getAllIssues());
   }
 
@@ -61,10 +59,10 @@ public class FriendEntityTest {
   public void testRejectDuplicateCreate() {
     PersistentEntityTestDriver<FriendCommand, FriendEvent, FriendState> driver = new PersistentEntityTestDriver<>(
         system, new FriendEntity(), "user-1");
-    driver.run(new CreateUser(new User("alice", "Alice")));
+    driver.run(CreateUser.of(User.of("alice", "Alice")));
 
     Outcome<FriendEvent, FriendState> outcome = driver.run(
-        new CreateUser(new User("alice", "Alice")));
+        CreateUser.of(User.of("alice", "Alice")));
     assertEquals(PersistentEntity.InvalidCommandException.class, outcome.getReplies().get(0).getClass());
     assertEquals(Collections.emptyList(), outcome.events());
     assertEquals(Collections.emptyList(), driver.getAllIssues());
@@ -77,11 +75,11 @@ public class FriendEntityTest {
 
     TreePVector<String> friends = TreePVector.<String>empty().plus("bob").plus("peter");
     Outcome<FriendEvent, FriendState> outcome = driver.run(
-        new CreateUser(new User("alice", "Alice", Optional.of(friends))));
+        CreateUser.of(AbstractUser.of("alice", "Alice", Optional.of(friends))));
     assertEquals(Done.getInstance(), outcome.getReplies().get(0));
-    assertEquals("alice", ((UserCreated) outcome.events().get(0)).userId);
-    assertEquals("bob", ((FriendAdded) outcome.events().get(1)).friendId);
-    assertEquals("peter", ((FriendAdded) outcome.events().get(2)).friendId);
+    assertEquals("alice", ((UserCreated) outcome.events().get(0)).getUserId());
+    assertEquals("bob", ((FriendAdded) outcome.events().get(1)).getFriendId());
+    assertEquals("peter", ((FriendAdded) outcome.events().get(2)).getFriendId());
     assertEquals(Collections.emptyList(), driver.getAllIssues());
   }
 
@@ -89,12 +87,12 @@ public class FriendEntityTest {
   public void testAddFriend() {
     PersistentEntityTestDriver<FriendCommand, FriendEvent, FriendState> driver = new PersistentEntityTestDriver<>(
         system, new FriendEntity(), "user-1");
-    driver.run(new CreateUser(new User("alice", "Alice")));
+    driver.run(CreateUser.of(User.of("alice", "Alice")));
 
-    Outcome<FriendEvent, FriendState> outcome = driver.run(new AddFriend("bob"), new AddFriend("peter"));
+    Outcome<FriendEvent, FriendState> outcome = driver.run(AddFriend.of("bob"), AddFriend.of("peter"));
     assertEquals(Done.getInstance(), outcome.getReplies().get(0));
-    assertEquals("bob", ((FriendAdded) outcome.events().get(0)).friendId);
-    assertEquals("peter", ((FriendAdded) outcome.events().get(1)).friendId);
+    assertEquals("bob", ((FriendAdded) outcome.events().get(0)).getFriendId());
+    assertEquals("peter", ((FriendAdded) outcome.events().get(1)).getFriendId());
     assertEquals(Collections.emptyList(), driver.getAllIssues());
   }
 
@@ -102,10 +100,10 @@ public class FriendEntityTest {
   public void testAddDuplicateFriend() {
     PersistentEntityTestDriver<FriendCommand, FriendEvent, FriendState> driver = new PersistentEntityTestDriver<>(
         system, new FriendEntity(), "user-1");
-    driver.run(new CreateUser(new User("alice", "Alice")));
-    driver.run(new AddFriend("bob"), new AddFriend("peter"));
+    driver.run(CreateUser.of(User.of("alice", "Alice")));
+    driver.run(AddFriend.of("bob"), AddFriend.of("peter"));
 
-    Outcome<FriendEvent, FriendState> outcome = driver.run(new AddFriend("bob"));
+    Outcome<FriendEvent, FriendState> outcome = driver.run(AddFriend.of("bob"));
     assertEquals(Done.getInstance(), outcome.getReplies().get(0));
     assertEquals(Collections.emptyList(), outcome.events());
     assertEquals(Collections.emptyList(), driver.getAllIssues());
@@ -115,11 +113,11 @@ public class FriendEntityTest {
   public void testGetUser() {
     PersistentEntityTestDriver<FriendCommand, FriendEvent, FriendState> driver = new PersistentEntityTestDriver<>(
         system, new FriendEntity(), "user-1");
-    User alice = new User("alice", "Alice");
-    driver.run(new CreateUser(alice));
+    User alice = User.of("alice", "Alice");
+    driver.run(CreateUser.of(alice));
 
-    Outcome<FriendEvent, FriendState> outcome = driver.run(new GetUser());
-    assertEquals(new GetUserReply(Optional.of(alice)), outcome.getReplies().get(0));
+    Outcome<FriendEvent, FriendState> outcome = driver.run(GetUser.of());
+    assertEquals(GetUserReply.of(Optional.of(alice)), outcome.getReplies().get(0));
     assertEquals(Collections.emptyList(), outcome.events());
     assertEquals(Collections.emptyList(), driver.getAllIssues());
   }

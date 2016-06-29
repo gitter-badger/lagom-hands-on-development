@@ -39,8 +39,8 @@ public class ActivityStreamServiceTest {
           .toCompletableFuture().get(3, SECONDS);
       Probe<Chirp> probe = chirps.runWith(TestSink.probe(server.system()), server.materializer());
       probe.request(10);
-      assertEquals("msg1", probe.expectNext().message);
-      assertEquals("msg2", probe.expectNext().message);
+      assertEquals("msg1", probe.expectNext().getMessage());
+      assertEquals("msg2", probe.expectNext().getMessage());
       probe.cancel();
     });
   }
@@ -53,7 +53,7 @@ public class ActivityStreamServiceTest {
           .toCompletableFuture().get(3, SECONDS);
       Probe<Chirp> probe = chirps.runWith(TestSink.probe(server.system()), server.materializer());
       probe.request(10);
-      assertEquals("msg1", probe.expectNext().message);
+      assertEquals("msg1", probe.expectNext().getMessage());
       probe.expectComplete();
     });
   }
@@ -62,16 +62,16 @@ public class ActivityStreamServiceTest {
 
   static class FriendServiceStub implements FriendService {
 
-    private final User usr1 = new User("usr1", "User 1", 
+    private final User usr1 = AbstractUser.of("usr1", "User 1",
         Optional.of(TreePVector.<String>empty().plus("usr2")));
-    private final User usr2 = new User("usr2", "User 2");
+    private final User usr2 = User.of("usr2", "User 2");
 
     @Override
     public ServiceCall<NotUsed, User> getUser(String userId) {
       return req -> {
-        if (userId.equals(usr1.userId))
+        if (userId.equals(usr1.getUserId()))
           return completedFuture(usr1);
-        else if (userId.equals(usr2.userId))
+        else if (userId.equals(usr2.getUserId()))
           return completedFuture(usr2);
         else
           throw new NotFound(userId);
@@ -91,9 +91,9 @@ public class ActivityStreamServiceTest {
     @Override
     public ServiceCall<NotUsed, PSequence<String>> getFollowers(String userId) {
       return req -> {
-        if (userId.equals(usr1.userId))
+        if (userId.equals(usr1.getUserId()))
           return completedFuture(TreePVector.<String>empty());
-        else if (userId.equals(usr2.userId))
+        else if (userId.equals(usr2.getUserId()))
           return completedFuture(TreePVector.<String>empty().plus("usr1"));
         else
           throw new NotFound(userId);
@@ -111,9 +111,9 @@ public class ActivityStreamServiceTest {
     @Override
     public ServiceCall<LiveChirpsRequest, Source<Chirp, ?>> getLiveChirps() {
       return req -> {
-        if (req.userIds.contains("usr2")) {
-          Chirp c1 = new Chirp("usr2", "msg1");
-          Chirp c2 = new Chirp("usr2", "msg2");
+        if (req.getUserIds().contains("usr2")) {
+          Chirp c1 = Chirp.of("usr2", "msg1");
+          Chirp c2 = Chirp.of("usr2", "msg2");
           return completedFuture(Source.from(Arrays.asList(c1, c2)));
         } else
           return completedFuture(Source.empty());
@@ -123,8 +123,8 @@ public class ActivityStreamServiceTest {
     @Override
     public ServiceCall<HistoricalChirpsRequest, Source<Chirp, ?>> getHistoricalChirps() {
       return req -> {
-        if (req.userIds.contains("usr2")) {
-          Chirp c1 = new Chirp("usr2", "msg1");
+        if (req.getUserIds().contains("usr2")) {
+          Chirp c1 = Chirp.of("usr2", "msg1");
           return completedFuture(Source.single(c1));
         } else
           return completedFuture(Source.empty());

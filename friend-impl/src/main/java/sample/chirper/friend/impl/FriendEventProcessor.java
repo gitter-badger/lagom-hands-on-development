@@ -16,7 +16,6 @@ import com.lightbend.lagom.javadsl.persistence.cassandra.CassandraReadSideProces
 import com.lightbend.lagom.javadsl.persistence.cassandra.CassandraSession;
 
 import akka.Done;
-import sample.chirper.friend.impl.FriendEvent.FriendAdded;
 
 public class FriendEventProcessor extends CassandraReadSideProcessor<FriendEvent> {
 
@@ -88,8 +87,8 @@ public class FriendEventProcessor extends CassandraReadSideProcessor<FriendEvent
 
   private CompletionStage<List<BoundStatement>> processFriendChanged(FriendAdded event, UUID offset) {
     BoundStatement bindWriteFollowers = writeFollowers.bind();
-    bindWriteFollowers.setString("userId", event.friendId);
-    bindWriteFollowers.setString("followedBy", event.userId);
+    bindWriteFollowers.setString("userId", event.getFriendId());
+    bindWriteFollowers.setString("followedBy", event.getUserId());
     BoundStatement bindWriteOffset = writeOffset.bind(offset);
     return completedStatements(Arrays.asList(bindWriteFollowers, bindWriteOffset));
   }

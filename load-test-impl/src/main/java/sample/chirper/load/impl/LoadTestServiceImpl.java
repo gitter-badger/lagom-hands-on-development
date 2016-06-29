@@ -18,6 +18,7 @@ import javax.inject.Inject;
 import play.Logger;
 import play.Logger.ALogger;
 import sample.chirper.activity.api.ActivityStreamService;
+import sample.chirper.chirp.api.AbstractChirp;
 import sample.chirper.chirp.api.Chirp;
 import sample.chirper.chirp.api.ChirpService;
 import sample.chirper.friend.api.FriendId;
@@ -76,7 +77,7 @@ public class LoadTestServiceImpl implements LoadTestService {
     log.info("Starting load with parameters: " + params + ", users prefixed with: " + userIdPrefix);
     Source<Integer, ?> userNumbers = Source.range(1, params.users);
     Source<User, ?> users = userNumbers
-        .map(n -> new User(userIdPrefix + n, userIdPrefix.toUpperCase() + n));
+        .map(n -> User.of(userIdPrefix + n, userIdPrefix.toUpperCase() + n));
     Source<String, ?> createdUsers = users
         .mapAsync(params.parallelism, user -> friendService.createUser().invoke(user))
         .via(summary("created users"));
@@ -92,7 +93,7 @@ public class LoadTestServiceImpl implements LoadTestService {
     final AtomicLong chirpCount = new AtomicLong();
     Source<String, ?> addedFriends = friendPairs.mapAsyncUnordered(params.parallelism, pair -> {
       CompletionStage<NotUsed> invoked = friendService.addFriend(userIdPrefix + pair.first()).
-        invoke(new FriendId(userIdPrefix + pair.second()));
+        invoke(FriendId.of(userIdPrefix + pair.second()));
       // start clients when last friend association has been created
       if (params.users == pair.first() && (params.users + params.friends) == pair.second())
         invoked.thenAccept(a -> startClients(params.clients, userIdPrefix, chirpCount, runSeqNr));
@@ -103,11 +104,11 @@ public class LoadTestServiceImpl implements LoadTestService {
     Source<Chirp, ?> chirps = chirpNumbers.map(n -> {
       String userId = userIdPrefix + (n % params.users);
       String message = "Hello " + n + " from " + userId;
-      return new Chirp(userId, message);
+      return Chirp.of(userId, message);
     });
 
     Source<String, ?> postedChirps = chirps.mapAsyncUnordered(params.parallelism, chirp -> {
-      return chirpService.addChirp(chirp.userId).invoke(chirp);
+      return chirpService.addChirp(chirp.getUserId()).invoke(chirp);
     }).via(summary("posted chirp"));
 
 
