@@ -44,6 +44,7 @@ var Chirp = React.createClass({
                     </Link>
                 </h3>
                 {this.props.children}
+                <FavoriteIcon enable={this.props.isFavorited} key={this.props.key} userId={this.props.userId} />
                 <hr />
             </div>
         );
@@ -122,7 +123,7 @@ var ChirpStream = React.createClass({
                 userName = chirp.userId;
             }
             return (
-                <Chirp userId={chirp.userId} userName={userName} key={chirp.uuid}>
+                <Chirp userId={chirp.userId} userName={userName} key={chirp.uuid} isFavorited={false}>
                     {chirp.message}
                 </Chirp>
             );
@@ -258,6 +259,33 @@ var ActivityStream = React.createClass({
         );
     }
 });
+
+var FavoriteIcon = React.createClass({
+    enable: function() {
+        this.setState({enable: true});
+    },
+    disable: function() {
+        this.setState({enable: false});
+    },
+    getInitialState: function() {
+        return {enable: false};
+    },
+    componentDidMount: function() {
+        this.state.enable = this.props.enable;
+    },
+    render: function() {
+        if (this.state.enable) {
+            return (
+                <div className="favorite-icon enable" onClick={this.disable}></div>
+            );
+        } else {
+            return (
+                <div className="favorite-icon disable" onClick={this.enable}></div>
+            );
+        }
+    }
+});
+
 
 var UserChirps = React.createClass({
     getInitialState: function() {
