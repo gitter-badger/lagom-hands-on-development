@@ -837,3 +837,28 @@ input[type=submit]:hover {
   background: #127796;
   text-decoration: none;
 }
+
+.favorite-icon.enable {
+  width: 1em;
+  height: 1em;
+  background-size: 1em;
+  background-repeat: no-repeat;
+  background-image: url(images/favorite-enable.svg);
+  margin-top: 0.5em;
+}
+.favorite-icon.disable {
+  width: 1em;
+  height: 1em;
+  background-size: 1em;
+  background-repeat: no-repeat;
+  background-image: url(images/favorite-disable.svg);
+  margin-top: 0.5em;
+}
+.favorite-icon.disable:hover {
+  width: 1em;
+  height: 1em;
+  background-size: 1em;
+  background-repeat: no-repeat;
+  background-image: url(images/favorite-enable.svg);
+  margin-top: 0.5em;
+}
