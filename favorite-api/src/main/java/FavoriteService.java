@@ -12,7 +12,7 @@ public interface FavoriteService extends Service {
 
     ServiceCall<FavoriteId, NotUsed> deleteFavorite(String userId);
 
-    ServiceCall<NotUsed, PSequence<FavoriteId>> getFavorites(String userId);
+    ServiceCall<NotUsed, PSequence<String>> getFavorites(String userId);
 
     @Override
     default Descriptor descriptor() {

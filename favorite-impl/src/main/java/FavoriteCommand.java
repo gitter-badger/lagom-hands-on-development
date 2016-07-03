@@ -14,6 +14,9 @@ public interface FavoriteCommand extends Jsonable {
     interface AbstractAddFavorite extends FavoriteCommand, PersistentEntity.ReplyType<Done> {
 
         @Value.Parameter
+        String getUserId();
+
+        @Value.Parameter
         String getFavoriteChirpId();
     }
 
@@ -22,6 +25,8 @@ public interface FavoriteCommand extends Jsonable {
     @JsonDeserialize(as = DeleteFavorite.class)
     interface AbstractDeleteFavorite extends FavoriteCommand, PersistentEntity.ReplyType<Done> {
 
+        @Value.Parameter
+        String getUserId();
 
         @Value.Parameter
         String getFavoriteChirpId();
