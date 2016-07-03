@@ -71,6 +71,28 @@ lazy val activityStreamImpl = project("activity-stream-impl")
   )
   .dependsOn(activityStreamApi, chirpApi, friendApi)
 
+lazy val favoriteApi = project("favorite-api")
+  .settings(
+    version := "1.0-SNAPSHOT",
+    libraryDependencies ++= Seq(
+      lagomJavadslApi,
+      lagomJavadslImmutables
+    )
+  )
+
+lazy val favoriteImpl = project("favorite-impl")
+  .enablePlugins(LagomJava)
+  .settings(
+    version := "1.0-SNAPSHOT",
+    libraryDependencies ++= Seq(
+      lagomJavadslPersistence,
+      lagomJavadslImmutables,
+      lagomJavadslTestKit
+    )
+  )
+  .dependsOn(favoriteApi)
+
+
 lazy val frontEnd = project("front-end")
   .enablePlugins(PlayJava, LagomPlay)
   .settings(
