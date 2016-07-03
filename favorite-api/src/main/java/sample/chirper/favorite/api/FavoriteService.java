@@ -1,3 +1,5 @@
+package sample.chirper.favorite.api;
+
 import akka.NotUsed;
 import com.lightbend.lagom.javadsl.api.Descriptor;
 import com.lightbend.lagom.javadsl.api.Service;

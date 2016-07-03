@@ -10,7 +10,6 @@ lazy val friendApi = project("friend-api")
       lagomJavadslApi,
       lagomJavadslImmutables
     )
-
   )
 
 lazy val friendImpl = project("friend-impl")
@@ -90,6 +89,7 @@ lazy val favoriteImpl = project("favorite-impl")
       lagomJavadslTestKit
     )
   )
+  .settings(lagomForkedTestSettings: _*)
   .dependsOn(favoriteApi)
 
 

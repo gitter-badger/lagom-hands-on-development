@@ -1,3 +1,5 @@
+package sample.chirper.favorite.impl;
+
 import akka.Done;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.lightbend.lagom.javadsl.immutable.ImmutableStyle;
@@ -5,6 +7,7 @@ import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
 import com.lightbend.lagom.serialization.Jsonable;
 import org.immutables.value.Value;
 import org.pcollections.PSequence;
+import org.pcollections.TreePVector;
 
 public interface FavoriteCommand extends Jsonable {
 
@@ -41,10 +44,12 @@ public interface FavoriteCommand extends Jsonable {
     @Value.Immutable
     @ImmutableStyle
     @JsonDeserialize(as = GetFavoritesReply.class)
-    interface AbstractGetFavoritesReply {
+    interface AbstractGetFavoritesReply extends Jsonable {
 
-        @Value.Parameter
-        PSequence<String> getFavoriteIds();
+        @Value.Default
+        default PSequence<String> getFavoriteIds() {
+            return TreePVector.empty();
+        }
     }
 
 }

@@ -1,11 +1,10 @@
+package sample.chirper.favorite.impl;
+
 import akka.Done;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
 
 import java.util.Optional;
 
-/**
- * Created by kazuki on 2016/07/03.
- */
 public class FavoriteEntity extends PersistentEntity<FavoriteCommand, FavoriteEvent, FavoriteState> {
 
     @Override
@@ -13,8 +12,10 @@ public class FavoriteEntity extends PersistentEntity<FavoriteCommand, FavoriteEv
         BehaviorBuilder b = newBehaviorBuilder(snapshotState.orElse(FavoriteState.builder().build()));
 
         b.setCommandHandler(AddFavorite.class,
-            (request, ctx) ->
-                ctx.thenPersist(FavoriteAdded.of(request.getUserId(), request.getFavoriteChirpId()))
+            (request, ctx) -> {
+                FavoriteAdded event = FavoriteAdded.of(request.getUserId(), request.getFavoriteChirpId());
+                return ctx.thenPersist(event, (evt) -> ctx.reply(Done.getInstance()));
+            }
         );
 
         b.setEventHandler(FavoriteAdded.class,
@@ -22,8 +23,10 @@ public class FavoriteEntity extends PersistentEntity<FavoriteCommand, FavoriteEv
         );
 
         b.setCommandHandler(DeleteFavorite.class,
-            (request, ctx) ->
-                ctx.thenPersist(FavoriteDeleted.of(request.getUserId(), request.getFavoriteChirpId()))
+            (request, ctx) -> {
+                FavoriteDeleted event = FavoriteDeleted.of(request.getUserId(), request.getFavoriteChirpId());
+                return ctx.thenPersist(event, (evt) -> ctx.reply(Done.getInstance()));
+            }
         );
 
         b.setEventHandler(FavoriteDeleted.class,
@@ -31,7 +34,12 @@ public class FavoriteEntity extends PersistentEntity<FavoriteCommand, FavoriteEv
         );
 
         b.setReadOnlyCommandHandler(GetFavorites.class,
-            (request, ctx) -> GetFavoritesReply.of(state().getFavoriteIds())
+            (request, ctx) -> {
+                GetFavoritesReply favorites = GetFavoritesReply.builder()
+                        .favoriteIds(state().getFavoriteIds())
+                        .build();
+                ctx.reply(favorites);
+            }
         );
 
         return b.build();

@@ -1,17 +1,17 @@
+package sample.chirper.favorite.impl;
+
 import akka.Done;
 import akka.NotUsed;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
-import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRef;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRegistry;
 import org.pcollections.PSequence;
+import sample.chirper.favorite.api.FavoriteId;
+import sample.chirper.favorite.api.FavoriteService;
 
 import javax.inject.Inject;
 import java.util.concurrent.CompletionStage;
 
-/**
- * Created by kazuki on 2016/07/03.
- */
 public class FavoriteServiceImpl implements FavoriteService {
 
     private final PersistentEntityRegistry persistentEntities;
@@ -47,9 +47,9 @@ public class FavoriteServiceImpl implements FavoriteService {
     @Override
     public ServiceCall<NotUsed, PSequence<String>> getFavorites(String userId) {
         return request -> {
-            CompletionStage<PSequence<String>> favorites =
+            CompletionStage<GetFavoritesReply> favorites =
                 favoriteEntityRef(userId).ask(GetFavorites.of());
-            return favorites;
+            return favorites.thenApply(rep -> rep.getFavoriteIds());
         };
     }
 }

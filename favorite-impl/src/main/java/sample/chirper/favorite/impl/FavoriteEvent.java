@@ -1,3 +1,5 @@
+package sample.chirper.favorite.impl;
+
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.lightbend.lagom.javadsl.immutable.ImmutableStyle;
 import com.lightbend.lagom.serialization.Jsonable;
