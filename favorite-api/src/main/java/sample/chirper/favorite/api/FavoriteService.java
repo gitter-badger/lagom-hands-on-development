@@ -4,7 +4,7 @@ import akka.NotUsed;
 import com.lightbend.lagom.javadsl.api.Descriptor;
 import com.lightbend.lagom.javadsl.api.Service;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
-import org.pcollections.PSequence;
+import org.pcollections.POrderedSet;
 
 import static com.lightbend.lagom.javadsl.api.Service.*;
 
@@ -14,7 +14,7 @@ public interface FavoriteService extends Service {
 
     ServiceCall<FavoriteId, NotUsed> deleteFavorite(String userId);
 
-    ServiceCall<NotUsed, PSequence<String>> getFavorites(String userId);
+    ServiceCall<NotUsed, POrderedSet<String>> getFavorites(String userId);
 
     @Override
     default Descriptor descriptor() {

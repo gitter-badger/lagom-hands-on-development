@@ -9,6 +9,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletionStage;
 import javax.inject.Inject;
+
+import org.pcollections.POrderedSet;
 import org.pcollections.PSequence;
 import sample.chirper.activity.api.ActivityStreamService;
 import sample.chirper.chirp.api.Chirp;
@@ -44,8 +46,9 @@ public class ActivityStreamServiceImpl implements ActivityStreamService {
         // Note that this stream will not include changes to friend associates,
         // e.g. adding a new friend.
         CompletionStage<Source<Chirp, ?>> result = chirpService.getLiveChirps().invoke(chirpsReq);
-        CompletionStage<PSequence<String>> favorites = favoriteService.getFavorites(userId).invoke();
+        CompletionStage<POrderedSet<String>> favorites = favoriteService.getFavorites(userId).invoke();
         return result.thenCombine(favorites, (chirps, favs) -> {
+          System.out.println(favs);
           return chirps.map(c -> {
             if (favs.contains(c.getUuid())) {
               return c.withIsFavorite(true);

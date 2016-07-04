@@ -14,19 +14,19 @@ import javax.validation.constraints.NotNull;
 public interface AbstractFavoriteState extends Jsonable {
 
     @Value.Default
-    default PSequence<String> getFavoriteIds() {
-        return TreePVector.empty();
+    default POrderedSet<String> getFavoriteIds() {
+        return OrderedPSet.empty();
     }
 
     default FavoriteState addFavoriteId(String favoriteId) {
-        PSequence<String> newFavoriteIds = getFavoriteIds().plus(favoriteId);
+        POrderedSet<String> newFavoriteIds = getFavoriteIds().plus(favoriteId);
         return FavoriteState.builder().from(this)
                 .favoriteIds(newFavoriteIds)
                 .build();
     }
 
     default FavoriteState deleteFavoriteId(String favoriteId) {
-        PSequence<String> newFavoriteIds = getFavoriteIds().minus(favoriteId);
+        POrderedSet<String> newFavoriteIds = getFavoriteIds().minus(favoriteId);
         return FavoriteState.builder().from(this)
                 .favoriteIds(newFavoriteIds)
                 .build();

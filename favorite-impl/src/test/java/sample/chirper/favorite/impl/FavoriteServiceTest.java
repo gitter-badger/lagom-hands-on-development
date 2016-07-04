@@ -6,7 +6,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.pcollections.PSequence;
+import org.pcollections.POrderedSet;
 import sample.chirper.favorite.api.FavoriteId;
 import sample.chirper.favorite.api.FavoriteService;
 
@@ -41,17 +41,17 @@ public class FavoriteServiceTest {
 
       favoriteService.deleteFavorite("user-A").invoke(fav1).toCompletableFuture().get(3, SECONDS);
 
-      PSequence<String> userAFavorites =
+      POrderedSet<String> userAFavorites =
               favoriteService.getFavorites("user-A").invoke().toCompletableFuture().get(3, SECONDS);
 
       assertEquals(userAFavorites.size(), 1);
-      Assert.assertEquals(fav1.getFavoriteId(), userAFavorites.get(0));
+      Assert.assertEquals(fav2.getFavoriteId(), userAFavorites.get(0));
 
-      PSequence<String> userBFavorites =
+      POrderedSet<String> userBFavorites =
               favoriteService.getFavorites("user-B").invoke().toCompletableFuture().get(3, SECONDS);
 
       assertEquals(userBFavorites.size(), 1);
-      Assert.assertEquals(fav2.getFavoriteId(), userBFavorites.get(0));
+      Assert.assertEquals(fav3.getFavoriteId(), userBFavorites.get(0));
   }
 
 }

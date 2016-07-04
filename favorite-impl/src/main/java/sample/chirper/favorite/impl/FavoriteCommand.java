@@ -6,8 +6,8 @@ import com.lightbend.lagom.javadsl.immutable.ImmutableStyle;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntity;
 import com.lightbend.lagom.serialization.Jsonable;
 import org.immutables.value.Value;
-import org.pcollections.PSequence;
-import org.pcollections.TreePVector;
+import org.pcollections.OrderedPSet;
+import org.pcollections.POrderedSet;
 
 public interface FavoriteCommand extends Jsonable {
 
@@ -47,8 +47,8 @@ public interface FavoriteCommand extends Jsonable {
     interface AbstractGetFavoritesReply extends Jsonable {
 
         @Value.Default
-        default PSequence<String> getFavoriteIds() {
-            return TreePVector.empty();
+        default POrderedSet<String> getFavoriteIds() {
+            return OrderedPSet.empty();
         }
     }
 

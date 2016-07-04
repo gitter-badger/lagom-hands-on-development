@@ -5,7 +5,7 @@ import akka.NotUsed;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRef;
 import com.lightbend.lagom.javadsl.persistence.PersistentEntityRegistry;
-import org.pcollections.PSequence;
+import org.pcollections.POrderedSet;
 import sample.chirper.favorite.api.FavoriteId;
 import sample.chirper.favorite.api.FavoriteService;
 
@@ -45,7 +45,7 @@ public class FavoriteServiceImpl implements FavoriteService {
     }
 
     @Override
-    public ServiceCall<NotUsed, PSequence<String>> getFavorites(String userId) {
+    public ServiceCall<NotUsed, POrderedSet<String>> getFavorites(String userId) {
         return request -> {
             CompletionStage<GetFavoritesReply> favorites =
                 favoriteEntityRef(userId).ask(GetFavorites.of());
