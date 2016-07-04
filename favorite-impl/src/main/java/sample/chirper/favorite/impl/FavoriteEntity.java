@@ -38,6 +38,7 @@ public class FavoriteEntity extends PersistentEntity<FavoriteCommand, FavoriteEv
                 GetFavoritesReply favorites = GetFavoritesReply.builder()
                         .favoriteIds(state().getFavoriteIds())
                         .build();
+                System.out.println(favorites);
                 ctx.reply(favorites);
             }
         );

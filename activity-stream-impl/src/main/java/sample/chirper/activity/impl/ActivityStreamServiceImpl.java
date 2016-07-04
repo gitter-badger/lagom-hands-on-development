@@ -15,6 +15,7 @@ import sample.chirper.chirp.api.Chirp;
 import sample.chirper.chirp.api.ChirpService;
 import sample.chirper.chirp.api.HistoricalChirpsRequest;
 import sample.chirper.chirp.api.LiveChirpsRequest;
+import sample.chirper.favorite.api.FavoriteService;
 import sample.chirper.friend.api.FriendService;
 
 import akka.stream.javadsl.Source;
@@ -23,11 +24,15 @@ public class ActivityStreamServiceImpl implements ActivityStreamService {
 
   private final FriendService friendService;
   private final ChirpService chirpService;
+  private final FavoriteService favoriteService;
 
   @Inject
-  public ActivityStreamServiceImpl(FriendService friendService, ChirpService chirpService) {
+  public ActivityStreamServiceImpl(FriendService friendService,
+                                   ChirpService chirpService,
+                                   FavoriteService favoriteService) {
     this.friendService = friendService;
     this.chirpService = chirpService;
+    this.favoriteService = favoriteService;
   }
 
   @Override
@@ -39,7 +44,16 @@ public class ActivityStreamServiceImpl implements ActivityStreamService {
         // Note that this stream will not include changes to friend associates,
         // e.g. adding a new friend.
         CompletionStage<Source<Chirp, ?>> result = chirpService.getLiveChirps().invoke(chirpsReq);
-        return result;
+        CompletionStage<PSequence<String>> favorites = favoriteService.getFavorites(userId).invoke();
+        return result.thenCombine(favorites, (chirps, favs) -> {
+          return chirps.map(c -> {
+            if (favs.contains(c.getUuid())) {
+              return c.withIsFavorite(true);
+            } else {
+              return c;
+            }
+          });
+        });
       });
     };
   }

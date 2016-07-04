@@ -12,8 +12,6 @@ import com.lightbend.lagom.javadsl.immutable.ImmutableStyle;
 import com.lightbend.lagom.serialization.Jsonable;
 import org.immutables.value.Value;
 
-import javax.annotation.Nullable;
-
 @Value.Immutable
 @ImmutableStyle
 @JsonDeserialize(as = Chirp.class)
@@ -35,7 +33,12 @@ public interface AbstractChirp extends Jsonable {
     return UUID.randomUUID().toString();
   }
 
-  static Chirp of(String userId, String message, Optional<Instant> timestamp, Optional<String> uuid) {
+  @Value.Default
+  default Boolean isFavorite() {
+    return false;
+  }
+
+  static Chirp of(String userId, String message, Optional<Instant> timestamp, Optional<String> uuid, Optional<Boolean> isFavorite) {
 
     Chirp.Builder builder = Chirp.builder()
             .userId(userId)
@@ -43,6 +46,7 @@ public interface AbstractChirp extends Jsonable {
 
     timestamp.ifPresent(t -> builder.timestamp(t));
     uuid.ifPresent(u -> builder.uuid(u));
+    isFavorite.ifPresent(f -> builder.isFavorite(f));
 
     return builder.build();
   }

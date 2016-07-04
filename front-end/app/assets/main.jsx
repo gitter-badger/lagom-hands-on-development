@@ -44,7 +44,7 @@ var Chirp = React.createClass({
                     </Link>
                 </h3>
                 {this.props.children}
-                <FavoriteIcon enable={this.props.isFavorited} key={this.props.key} userId={this.props.userId} />
+                <FavoriteIcon enable={this.props.isFavorite} favoriteId={this.props.uuid} userId={this.props.userId} />
                 <hr />
             </div>
         );
@@ -123,7 +123,7 @@ var ChirpStream = React.createClass({
                 userName = chirp.userId;
             }
             return (
-                <Chirp userId={chirp.userId} userName={userName} key={chirp.uuid} isFavorited={false}>
+                <Chirp uuid={chirp.uuid} userId={chirp.userId} userName={userName} key={chirp.uuid} isFavorite={chirp.isFavorite}>
                     {chirp.message}
                 </Chirp>
             );
@@ -263,9 +263,37 @@ var ActivityStream = React.createClass({
 var FavoriteIcon = React.createClass({
     enable: function() {
         this.setState({enable: true});
+        sendJson({
+            url: "/api/favorites/" + localStorage.userId + "/add",
+            type: 'POST',
+            data: {
+                favoriteId: this.props.favoriteId
+            },
+            success: function() {
+                this.setState({enable: true});
+            }.bind(this),
+            error: function(xhr, status, err) {
+                console.log("Error occurred while adding favorite: " + err);
+                this.setState({error: "Error occurred while adding favorite."});
+            }.bind(this)
+        });
     },
     disable: function() {
         this.setState({enable: false});
+        sendJson({
+            url: "/api/favorites/" + localStorage.userId + "/delete",
+            type: 'POST',
+            data: {
+                favoriteId: this.props.favoriteId
+            },
+            success: function() {
+                this.setState({enable: false});
+            }.bind(this),
+            error: function(xhr, status, err) {
+                console.log("Error occurred while deleting favorite: " + err);
+                this.setState({error: "Error occurred while deleting favorite."});
+            }.bind(this)
+        });
     },
     getInitialState: function() {
         return {enable: false};

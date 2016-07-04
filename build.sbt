@@ -68,7 +68,7 @@ lazy val activityStreamImpl = project("activity-stream-impl")
       lagomJavadslTestKit
     )
   )
-  .dependsOn(activityStreamApi, chirpApi, friendApi)
+  .dependsOn(activityStreamApi, chirpApi, friendApi, favoriteApi)
 
 lazy val favoriteApi = project("favorite-api")
   .settings(
