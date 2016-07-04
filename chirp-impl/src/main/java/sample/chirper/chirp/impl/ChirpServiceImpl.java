@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
+import org.pcollections.POrderedSet;
 import org.pcollections.PSequence;
 import org.pcollections.TreePVector;
 
@@ -31,19 +32,22 @@ import akka.stream.javadsl.Source;
 import play.Logger;
 import play.Logger.ALogger;
 import sample.chirper.chirp.api.*;
+import sample.chirper.favorite.api.FavoriteService;
 
 public class ChirpServiceImpl implements ChirpService {
 
   private static final int MAX_TOPICS = 1024;
   private final PubSubRegistry topics;
   private final CassandraSession db;
+  private final FavoriteService favoriteService;
   private final ALogger log = Logger.of(getClass());
 
   @Inject
-  public ChirpServiceImpl(PubSubRegistry topics, CassandraSession db) {
+  public ChirpServiceImpl(PubSubRegistry topics, CassandraSession db, FavoriteService favoriteService) {
     this.topics = topics;
     this.db = db;
     createTable();
+    this.favoriteService = favoriteService;
   }
 
   private void createTable() {
@@ -80,12 +84,15 @@ public class ChirpServiceImpl implements ChirpService {
   }
 
   @Override
-  public ServiceCall<LiveChirpsRequest, Source<Chirp, ?>> getLiveChirps() {
+  public ServiceCall<LiveChirpsRequest, Source<Chirp, ?>> getLiveChirps(String userId) {
     return req -> {
-      return recentChirps(req.getUserIds()).thenApply(recentChirps -> {
+
+      CompletionStage<POrderedSet<String>> favorites = favoriteService.getFavorites(userId).invoke();
+
+      return recentChirps(req.getUserIds()).thenCombine(favorites, (recentChirps, favs) -> {
         List<Source<Chirp, ?>> sources = new ArrayList<>();
-        for (String userId : req.getUserIds()) {
-          PubSubRef<Chirp> topic = topics.refFor(TopicId.of(Chirp.class, topicQualifier(userId)));
+        for (String uid : req.getUserIds()) {
+          PubSubRef<Chirp> topic = topics.refFor(TopicId.of(Chirp.class, topicQualifier(uid)));
           sources.add(topic.subscriber());
         }
         HashSet<String> users = new HashSet<>(req.getUserIds());
@@ -94,7 +101,9 @@ public class ChirpServiceImpl implements ChirpService {
 
         // We currently ignore the fact that it is possible to get duplicate chirps
         // from the recent and the topic. That can be solved with a de-duplication stage.
-        return Source.from(recentChirps).concat(publishedChirps);
+        return Source.from(recentChirps).concat(publishedChirps).map(c ->
+          favs.contains(c.getUuid()) ? c.withIsFavorite(true) : c
+        );
       });
     };
   }
@@ -103,9 +112,9 @@ public class ChirpServiceImpl implements ChirpService {
   public ServiceCall<HistoricalChirpsRequest, Source<Chirp, ?>> getHistoricalChirps() {
     return req -> {
       List<Source<Chirp, ?>> sources = new ArrayList<>();
-      for (String userId : req.getUserIds()) {
+      for (String uid : req.getUserIds()) {
           Source<Chirp, NotUsed> select = db
-            .select("SELECT * FROM chirp WHERE userId = ? AND timestamp >= ? ORDER BY timestamp ASC", userId,
+            .select("SELECT * FROM chirp WHERE userId = ? AND timestamp >= ? ORDER BY timestamp ASC", uid,
                 req.getFromTime().toEpochMilli())
             .map(this::mapChirp);
         sources.add(select);

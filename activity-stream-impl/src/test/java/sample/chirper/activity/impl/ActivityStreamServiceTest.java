@@ -109,7 +109,7 @@ public class ActivityStreamServiceTest {
     }
 
     @Override
-    public ServiceCall<LiveChirpsRequest, Source<Chirp, ?>> getLiveChirps() {
+    public ServiceCall<LiveChirpsRequest, Source<Chirp, ?>> getLiveChirps(String userId) {
       return req -> {
         if (req.getUserIds().contains("usr2")) {
           Chirp c1 = Chirp.of("usr2", "msg1");

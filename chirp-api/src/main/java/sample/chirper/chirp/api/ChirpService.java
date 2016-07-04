@@ -15,7 +15,7 @@ public interface ChirpService extends Service {
 
   ServiceCall<Chirp, NotUsed> addChirp(String userId);
   
-  ServiceCall<LiveChirpsRequest, Source<Chirp, ?>> getLiveChirps();
+  ServiceCall<LiveChirpsRequest, Source<Chirp, ?>> getLiveChirps(String userId);
   
   ServiceCall<HistoricalChirpsRequest, Source<Chirp, ?>> getHistoricalChirps();
 
@@ -24,7 +24,7 @@ public interface ChirpService extends Service {
     // @formatter:off
     return named("chirpservice").with(
         pathCall("/api/chirps/live/:userId", this::addChirp),
-        namedCall("/api/chirps/live", this::getLiveChirps),
+        pathCall("/api/chirps/live/:userId", this::getLiveChirps),
         namedCall("/api/chirps/history", this::getHistoricalChirps)
       ).withAutoAcl(true);
     // @formatter:on

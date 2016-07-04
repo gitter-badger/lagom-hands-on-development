@@ -6,17 +6,26 @@ package sample.chirper.chirp.impl;
 import static com.lightbend.lagom.javadsl.testkit.ServiceTest.*;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
+import akka.NotUsed;
+import com.lightbend.lagom.javadsl.api.ServiceCall;
 import com.lightbend.lagom.javadsl.testkit.ServiceTest.TestServer;
 import java.time.Instant;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.pcollections.OrderedPSet;
+import org.pcollections.POrderedSet;
 import org.pcollections.TreePVector;
 import sample.chirper.chirp.api.*;
 
 import akka.stream.javadsl.Source;
 import akka.stream.testkit.TestSubscriber.Probe;
 import akka.stream.testkit.javadsl.TestSink;
+import sample.chirper.favorite.api.FavoriteId;
+import sample.chirper.favorite.api.FavoriteService;
 
 public class ChirpServiceTest {
 
@@ -24,7 +33,9 @@ public class ChirpServiceTest {
 
   @BeforeClass
   public static void setUp() {
-    server = startServer(defaultSetup());
+    server = startServer(defaultSetup().withConfigureBuilder(b ->
+      b.overrides(bind(FavoriteService.class).to(FavoriteServiceStub.class))
+    ));
   }
 
   @AfterClass
@@ -37,10 +48,10 @@ public class ChirpServiceTest {
   public void shouldPublishShirpsToSubscribers() throws Exception {
     ChirpService chirpService = server.client(ChirpService.class);
     LiveChirpsRequest request = LiveChirpsRequest.of(TreePVector.<String>empty().plus("usr1").plus("usr2"));
-    Source<Chirp, ?> chirps1 = chirpService.getLiveChirps().invoke(request).toCompletableFuture().get(3, SECONDS);
+    Source<Chirp, ?> chirps1 = chirpService.getLiveChirps("user1").invoke(request).toCompletableFuture().get(3, SECONDS);
     Probe<Chirp> probe1 = chirps1.runWith(TestSink.probe(server.system()), server.materializer());
     probe1.request(10);
-    Source<Chirp, ?> chirps2 = chirpService.getLiveChirps().invoke(request).toCompletableFuture().get(3, SECONDS);
+    Source<Chirp, ?> chirps2 = chirpService.getLiveChirps("user1").invoke(request).toCompletableFuture().get(3, SECONDS);
     Probe<Chirp> probe2 = chirps2.runWith(TestSink.probe(server.system()), server.materializer());
     probe2.request(10);
 
@@ -74,7 +85,7 @@ public class ChirpServiceTest {
     chirpService.addChirp("usr4").invoke(chirp2).toCompletableFuture().get(3, SECONDS);
 
     LiveChirpsRequest request = LiveChirpsRequest.of(TreePVector.<String>empty().plus("usr3").plus("usr4"));
-    Source<Chirp, ?> chirps = chirpService.getLiveChirps().invoke(request).toCompletableFuture().get(3, SECONDS);
+    Source<Chirp, ?> chirps = chirpService.getLiveChirps("user3").invoke(request).toCompletableFuture().get(3, SECONDS);
     Probe<Chirp> probe = chirps.runWith(TestSink.probe(server.system()), server.materializer());
     probe.request(10);
     probe.expectNextUnordered(chirp1, chirp2);
@@ -105,6 +116,28 @@ public class ChirpServiceTest {
     probe.expectComplete();
   }
 
+  public static class FavoriteServiceStub implements FavoriteService {
 
+    @Override
+    public ServiceCall<FavoriteId, NotUsed> addFavorite(String userId) {
+      return request -> {
+        return CompletableFuture.completedFuture(NotUsed.getInstance());
+      };
+    }
+
+    @Override
+    public ServiceCall<FavoriteId, NotUsed> deleteFavorite(String userId) {
+      return request -> {
+        return CompletableFuture.completedFuture(NotUsed.getInstance());
+      };
+    }
+
+    @Override
+    public ServiceCall<NotUsed, POrderedSet<String>> getFavorites(String userId) {
+      return request -> {
+        return CompletableFuture.completedFuture(OrderedPSet.empty());
+      };
+    }
+  }
 
 }

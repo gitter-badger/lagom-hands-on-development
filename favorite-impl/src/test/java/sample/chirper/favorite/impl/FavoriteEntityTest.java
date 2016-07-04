@@ -19,7 +19,7 @@ public class FavoriteEntityTest {
 
     @BeforeClass
     public static void setup() {
-        system = ActorSystem.create("sample.chirper.favorite.impl.FavoriteEntityTest");
+        system = ActorSystem.create("favorite-entity");
     }
 
     @AfterClass

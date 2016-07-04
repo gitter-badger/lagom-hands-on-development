@@ -52,7 +52,7 @@ var Chirp = React.createClass({
 });
 
 function createUserStream(userId) {
-    return createStream("/api/chirps/live", function(stream) {
+    return createStream("/api/chirps/live/" + userId, function(stream) {
         stream.send(JSON.stringify({userIds: [userId]}));
     });
 }

@@ -47,7 +47,7 @@ lazy val chirpImpl = project("chirp-impl")
     )
   )
   .settings(lagomForkedTestSettings: _*)
-  .dependsOn(chirpApi)
+  .dependsOn(chirpApi, favoriteApi)
 
 lazy val activityStreamApi = project("activity-stream-api")
   .settings(
@@ -68,7 +68,7 @@ lazy val activityStreamImpl = project("activity-stream-impl")
       lagomJavadslTestKit
     )
   )
-  .dependsOn(activityStreamApi, chirpApi, friendApi, favoriteApi)
+  .dependsOn(activityStreamApi, chirpApi, friendApi)
 
 lazy val favoriteApi = project("favorite-api")
   .settings(
