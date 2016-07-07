@@ -35,7 +35,7 @@ public interface FriendCommand extends Jsonable {
   @Value.Immutable(singleton = true)
   @ImmutableStyle
   @JsonDeserialize(as = GetUser.class)
-  interface AbstractGetUser extends FriendCommand,PersistentEntity.ReplyType<GetUserReply> {
+  interface AbstractGetUser extends FriendCommand, PersistentEntity.ReplyType<GetUserReply> {
   }
 
   @Value.Immutable
