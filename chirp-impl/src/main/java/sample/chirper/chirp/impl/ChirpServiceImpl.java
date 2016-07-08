@@ -32,6 +32,7 @@ import akka.stream.javadsl.Source;
 import play.Logger;
 import play.Logger.ALogger;
 import sample.chirper.chirp.api.*;
+import sample.chirper.favorite.api.Favor;
 import sample.chirper.favorite.api.FavoriteService;
 
 public class ChirpServiceImpl implements ChirpService {
@@ -98,6 +99,11 @@ public class ChirpServiceImpl implements ChirpService {
         HashSet<String> users = new HashSet<>(req.getUserIds());
         Source<Chirp, ?> publishedChirps = Source.from(sources).flatMapMerge(sources.size(), s -> s)
           .filter(c -> users.contains(c.getUserId()));
+        Source<Chirp, ?> favorNotificationChirps = Source.from(sources).flatMapMerge(sources.size(), s -> s)
+          .map(c -> {
+            CompletionStage<Source<Favor, ?>> favors = favoriteService.getFavors(c.getUuid()).invoke();
+            return favors.toCompletableFuture().get();
+          }).
 
         // We currently ignore the fact that it is possible to get duplicate chirps
         // from the recent and the topic. That can be solved with a de-duplication stage.
