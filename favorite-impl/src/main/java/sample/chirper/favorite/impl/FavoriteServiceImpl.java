@@ -21,27 +21,42 @@ import java.util.concurrent.CompletableFuture;
  */
 public class FavoriteServiceImpl implements FavoriteService {
 
-    public FavoriteServiceImpl() {
+    private PersistentEntityRegistry persistentEntities;
+
+    @Inject
+    public FavoriteServiceImpl(PersistentEntityRegistry persistentEntities) {
+        this.persistentEntities = persistentEntities;
+        this.persistentEntities.register(FavoriteEntity.class);
+    }
+
+    private PersistentEntityRef<FavoriteCommand> favoriteEntityRef(String userId) {
+        return this.persistentEntities.refFor(FavoriteEntity.class, userId);
     }
 
     @Override
     public ServiceCall<FavoriteId, NotUsed> addFavorite(String userId) {
         return request -> {
-            return CompletableFuture.completedFuture(NotUsed.getInstance());
+            CompletionStage<Done> adding =
+                    favoriteEntityRef(userId).ask(AddFavorite.of(userId, request.getFavoriteId()));
+            return adding.thenApply(ack -> NotUsed.getInstance());
         };
     }
 
     @Override
     public ServiceCall<FavoriteId, NotUsed> deleteFavorite(String userId) {
         return request -> {
-            return CompletableFuture.completedFuture(NotUsed.getInstance());
+            CompletionStage<Done> deleting =
+                    favoriteEntityRef(userId).ask(DeleteFavorite.of(userId, request.getFavoriteId()));
+            return deleting.thenApply(ack -> NotUsed.getInstance());
         };
     }
 
     @Override
     public ServiceCall<NotUsed, POrderedSet<String>> getFavorites(String userId) {
         return notUsed -> {
-            return CompletableFuture.completedFuture(OrderedPSet.empty());
+            CompletionStage<GetFavoritesReply> favorites =
+                    favoriteEntityRef(userId).ask(GetFavorites.of());
+            return favorites.thenApply(rep -> rep.getFavoriteIds());
         };
     }
 
