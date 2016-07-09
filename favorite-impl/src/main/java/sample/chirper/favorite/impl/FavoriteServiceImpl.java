@@ -23,10 +23,17 @@ public class FavoriteServiceImpl implements FavoriteService {
 
     private PersistentEntityRegistry persistentEntities;
 
+    private final CassandraSession db;
+
     @Inject
-    public FavoriteServiceImpl(PersistentEntityRegistry persistentEntities) {
+    public FavoriteServiceImpl(PersistentEntityRegistry persistentEntities,
+                               CassandraReadSide readSide,
+                               CassandraSession db) {
         this.persistentEntities = persistentEntities;
         this.persistentEntities.register(FavoriteEntity.class);
+        this.db = db;
+
+        readSide.register(FavoriteEventProcessor.class);
     }
 
     private PersistentEntityRef<FavoriteCommand> favoriteEntityRef(String userId) {
@@ -63,7 +70,11 @@ public class FavoriteServiceImpl implements FavoriteService {
     @Override
     public ServiceCall<NotUsed, Integer> getFavorCount(String favoriteId) {
         return notUsed -> {
-            return CompletableFuture.completedFuture(0);
+            return db.selectOne("SELECT COUNT(*) AS favor_count FROM favor WHERE favoriteId = ?", favoriteId)
+                    .thenApply(optionalRow ->
+                        optionalRow.map(r -> r.getLong("favor_count")).orElse(0L).intValue()
+                    );
+
         };
     }
 }
