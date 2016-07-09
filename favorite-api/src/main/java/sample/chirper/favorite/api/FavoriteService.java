@@ -3,6 +3,7 @@ package sample.chirper.favorite.api;
 import static com.lightbend.lagom.javadsl.api.Service.*;
 
 import akka.NotUsed;
+import com.lightbend.lagom.javadsl.api.CircuitBreaker;
 import com.lightbend.lagom.javadsl.api.Descriptor;
 import com.lightbend.lagom.javadsl.api.Service;
 import com.lightbend.lagom.javadsl.api.ServiceCall;
@@ -31,14 +32,24 @@ public interface FavoriteService extends Service {
      */
     ServiceCall<NotUsed, Integer> getFavorCount(String favoriteId);
 
+    CircuitBreaker READ_SIDE_CIRCUIT_BREAKER =
+            CircuitBreaker.identifiedBy("favoriteservice-read-side");
+
+    CircuitBreaker WRITE_SIDE_CIRCUIT_BREAKER =
+            CircuitBreaker.identifiedBy("favoriteservice-write-side");
+
     @Override
     default Descriptor descriptor() {
         // @formatter:off
         return named("favoriteservice").withCalls(
-                pathCall("/api/favorites/:userId/add", this::addFavorite),
-                pathCall("/api/favorites/:userId/delete", this::deleteFavorite),
-                pathCall("/api/favorites/:userId/list", this::getFavorites),
+                pathCall("/api/favorites/:userId/add", this::addFavorite)
+                    .withCircuitBreaker(WRITE_SIDE_CIRCUIT_BREAKER),
+                pathCall("/api/favorites/:userId/delete", this::deleteFavorite)
+                    .withCircuitBreaker(WRITE_SIDE_CIRCUIT_BREAKER),
+                pathCall("/api/favorites/:userId/list", this::getFavorites)
+                    .withCircuitBreaker(WRITE_SIDE_CIRCUIT_BREAKER),
                 pathCall("/api/favors/:favoriteId/count", this::getFavorCount)
+                    .withCircuitBreaker(READ_SIDE_CIRCUIT_BREAKER)
         ).withAutoAcl(true);
         // @formatter:on
     }
