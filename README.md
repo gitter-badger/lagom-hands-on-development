@@ -1,5 +1,7 @@
 # Lagom Hands-On-Development
 
+[![Join the chat at https://gitter.im/negokaz/lagom-hands-on-development](https://badges.gitter.im/negokaz/lagom-hands-on-development.svg)](https://gitter.im/negokaz/lagom-hands-on-development?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Lagom のサンプルプロジェクト [Chirper](https://github.com/lagom/activator-lagom-java-chirper)(Twitterライクなアプリケーション) に「お気に入り」機能を追加実装するハンズオンです。
 
 ## このハンズオンで必要なもの
